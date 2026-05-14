@@ -1,0 +1,136 @@
+-- Create Database
+CREATE DATABASE SmartExpenseTracker;
+
+-- Use Database
+USE SmartExpenseTracker;
+
+-- Users Table
+CREATE TABLE Users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(100) NOT NULL
+);
+
+-- Categories Table
+CREATE TABLE Categories (
+    category_id INT PRIMARY KEY AUTO_INCREMENT,
+    category_name VARCHAR(50) NOT NULL
+);
+
+-- Expenses Table
+CREATE TABLE Expenses (
+    expense_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    category_id INT,
+    amount DECIMAL(10,2) NOT NULL,
+    expense_date DATE NOT NULL,
+    description VARCHAR(255),
+
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (category_id) REFERENCES Categories(category_id)
+);
+
+-- Budgets Table
+CREATE TABLE Budgets (
+    budget_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    category_id INT,
+    monthly_budget DECIMAL(10,2),
+
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (category_id) REFERENCES Categories(category_id)
+);
+
+-- Insert Sample Users
+INSERT INTO Users(username, email, password)
+VALUES
+('Hari', 'hari@gmail.com', 'hari123'),
+('Rahul', 'rahul@gmail.com', 'rahul123');
+
+-- Insert Categories
+INSERT INTO Categories(category_name)
+VALUES
+('Food'),
+('Travel'),
+('Shopping'),
+('Bills');
+
+-- Insert Expenses
+INSERT INTO Expenses(user_id, category_id, amount, expense_date, description)
+VALUES
+(1, 1, 250.00, '2026-05-01', 'Lunch'),
+(1, 2, 500.00, '2026-05-02', 'Bus Ticket'),
+(2, 3, 1200.00, '2026-05-03', 'Clothes Shopping');
+
+-- Insert Budgets
+INSERT INTO Budgets(user_id, category_id, monthly_budget)
+VALUES
+(1, 1, 5000.00),
+(1, 2, 3000.00),
+(2, 3, 7000.00);
+
+-- View All Expenses
+SELECT * FROM Expenses;
+
+-- View Expenses with Category Name
+SELECT 
+    e.expense_id,
+    u.username,
+    c.category_name,
+    e.amount,
+    e.expense_date,
+    e.description
+FROM Expenses e
+JOIN Users u 
+ON e.user_id = u.user_id
+JOIN Categories c
+ON e.category_id = c.category_id;
+
+-- Total Expense by User
+SELECT 
+    u.username,
+    SUM(e.amount) AS total_expense
+FROM Expenses e
+JOIN Users u
+ON e.user_id = u.user_id
+GROUP BY u.username;
+
+-- Category-wise Expense Report
+SELECT 
+    c.category_name,
+    SUM(e.amount) AS total_spent
+FROM Expenses e
+JOIN Categories c
+ON e.category_id = c.category_id
+GROUP BY c.category_name;
+
+-- Find Expenses Greater Than 500
+SELECT * 
+FROM Expenses
+WHERE amount > 500;
+
+-- Update Expense Amount
+UPDATE Expenses
+SET amount = 300
+WHERE expense_id = 1;
+
+-- Delete an Expense
+DELETE FROM Expenses
+WHERE expense_id = 3;
+
+-- Create View for Monthly Report
+CREATE VIEW MonthlyExpenseReport AS
+SELECT 
+    u.username,
+    c.category_name,
+    e.amount,
+    e.expense_date
+FROM Expenses e
+JOIN Users u
+ON e.user_id = u.user_id
+JOIN Categories c
+ON e.category_id = c.category_id;
+
+-- Display View
+SELECT * FROM MonthlyExpenseReport;
